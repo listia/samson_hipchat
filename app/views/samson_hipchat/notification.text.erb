@@ -1,0 +1,19 @@
+<%= subject %>
+<% if changeset.commits.count == 0 %>
+There are no new commits since last time.
+<% else %>
+<%= pluralize changeset.commits.count, "commit" %> by <%= changeset.author_names.to_sentence %>.
+<br>
+<strong>Files changed:</strong>
+<ul>
+<% changeset.files.each do |file| %>
+  <li><%= file.status[0].upcase %> <%= file.filename %></li>
+<% end %>
+</ul>
+<strong>Commits:</strong>
+<ol>
+<% changeset.commits.each do |commit| %>
+  <li><a href='<%= commit.url %>'>(<%= commit.author_name %>)</a>: <%= commit.summary %></li>
+<% end %>
+</ol>
+<% end %>

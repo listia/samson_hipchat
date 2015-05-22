@@ -1,0 +1,25 @@
+<fieldset>
+  <legend>Hipchat</legend>
+  <p class="col-lg-offset-2">Hipchat room and token.</p>
+
+  <% stage = form.object %>
+  <% stage.hipchat_rooms.build if stage.hipchat_rooms.last.try(:name).blank? %>
+
+  <%= form.fields_for :hipchat_rooms do |hipchat_fields| %>
+    <div class="form-group">
+      <div class="col-lg-2 col-lg-offset-2">
+        <%= hipchat_fields.text_field :name, class: "form-control", placeholder: "Room name" %>
+      </div>
+      <div class="col-lg-4">
+        <%= hipchat_fields.text_field :token, class: "form-control", placeholder: "Token" %>
+      </div>
+
+      <% if hipchat_fields.object.persisted? %>
+        <div class="col-lg-1 checkbox">
+          <%= hipchat_fields.check_box :_destroy if hipchat_fields.object.persisted? %>
+          <%= hipchat_fields.label :_destroy, "Delete" %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</fieldset>
