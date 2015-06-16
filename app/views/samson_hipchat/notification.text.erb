@@ -4,12 +4,18 @@ There are no new commits since last time.
 <% else %>
 <%= pluralize changeset.commits.count, "commit" %> by <%= changeset.author_names.to_sentence %>.
 <br>
+
+<%= deploy.message %>
+
+<%= if false %>
 <strong>Files changed:</strong>
 <ul>
 <% changeset.files.each do |file| %>
   <li><%= file.status[0].upcase %> <%= file.filename %></li>
 <% end %>
 </ul>
+<% end %>
+
 <strong>Commits:</strong>
 <ol>
 <% changeset.commits.each do |commit| %>
