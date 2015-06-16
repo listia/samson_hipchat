@@ -4,7 +4,7 @@ describe HipchatNotificationRenderer do
   describe "starting" do
     it "renders a nicely formatted notification" do
       changeset = stub("changeset")
-      deploy = stub("deploy", short_reference: "xyz", changeset: changeset)
+      deploy = stub("deploy", short_reference: "xyz", changeset: changeset, "message": "- Start deployment new feature")
 
       author1 = "author1"
       author2 = "author2"
@@ -24,18 +24,16 @@ describe HipchatNotificationRenderer do
 
       result.must_equal <<-RESULT.strip_heredoc.chomp
   Deploy starting
+  <p>&nbsp;&nbsp;- Start deployment new feature </p>
   2 commits by author1 and author2.
   <br>
-  <strong>Files changed:</strong>
-  <ul>
-    <li>A foo.rb</li>
-    <li>M bar.rb</li>
-  </ul>
+
+
   <strong>Commits:</strong>
   <ol>
     <li><a href='#'>(author1)</a>: Introduce bug</li>
     <li><a href='#'>(author2)</a>: Fix bug</li>
-  <ol>
+  </ol>
       RESULT
     end
   end

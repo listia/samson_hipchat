@@ -1,11 +1,10 @@
 <%= subject %>
+<p>&nbsp;&nbsp;<%= deploy.message %> </p>
 <% if changeset.commits.count == 0 %>
 There are no new commits since last time.
 <% else %>
 <%= pluralize changeset.commits.count, "commit" %> by <%= changeset.author_names.to_sentence %>.
 <br>
-
-<%= deploy.message %>
 
 <% if false %>
 <strong>Files changed:</strong>
