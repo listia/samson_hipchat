@@ -21,15 +21,17 @@ Stage.class_eval do
 
   def update_room_id
     if room_for(room_name)
+      # we attempt to save room id
       self.hipchat_rooms.first.room_id = room_for(room_name)['id']
     else
-      self.hipchat_rooms.first.room_id = nil
+      # if we fail, this maybe a notification token, just set it to 0
+      self.hipchat_rooms.first.room_id = 0 if room_name
     end
   end
 
   def room_exists?
     if room_name
-      errors.add(:hipchat_rooms_name, "was not found. Create the room first. If this is a notification token, you can ignore this message") unless room_for(room_name)
+      #errors.add(:hipchat_rooms_name, "was not found. Create the room first. If this is a notification token, you can ignore this message") unless room_for(room_name)
     end
   end
 
@@ -41,7 +43,7 @@ Stage.class_eval do
   def room_for(name)
     return nil unless name
 
-    Rails.cache.fetch(hipchat_rooms_cache_key, expires_in: 5.minutes) do
+    Rails.cache.fetch(hipchat_rooms_cache_key + name, expires_in: 15.minutes) do
       begin
         hipchat[name].get_room
       rescue HipChat::UnknownRoom, HipChat::UnknownResponseCode
