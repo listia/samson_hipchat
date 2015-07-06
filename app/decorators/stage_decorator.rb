@@ -20,12 +20,14 @@ Stage.class_eval do
   end
 
   def update_room_id
-    if room_for(room_name)
-      # we attempt to save room id
-      self.hipchat_rooms.first.room_id = room_for(room_name)['id']
-    else
-      # if we fail, this maybe a notification token, just set it to 0
-      self.hipchat_rooms.first.room_id = 0 if room_name
+    self.hipchat_rooms.each do |room|
+      if room_for(room_name)
+        # we attempt to save room id
+        room.room_id = room_for(room_name)['id']
+      else
+        # if we fail, this maybe a notification token, just set it to 0
+        room.room_id = 0 if room_name
+      end
     end
   end
 

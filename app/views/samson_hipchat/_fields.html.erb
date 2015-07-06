@@ -1,4 +1,4 @@
-<fieldset>
+<fieldset id="hipchat-room-containers">
   <legend>Hipchat</legend>
   <p class="col-lg-offset-2">Hipchat room and token.</p>
 
@@ -7,11 +7,17 @@
 
   <%= form.fields_for :hipchat_rooms do |hipchat_fields| %>
     <div class="form-group">
+
       <div class="col-lg-2 col-lg-offset-2">
         <%= hipchat_fields.text_field :name, class: "form-control", placeholder: "Room name" %>
       </div>
       <div class="col-lg-4">
         <%= hipchat_fields.text_field :token, class: "form-control", placeholder: "Token" %>
+      </div>
+
+      <div class="col-lg-2 col-lg-offset-2">
+        <%= hipchat_fields.select :notify_on, [['Always', :always], ['Succeeed', :succeeded]] %>
+        <%= hipchat_fields.label :notify_on, "Notify?" %>
       </div>
 
       <% if hipchat_fields.object.persisted? %>
@@ -22,4 +28,32 @@
       <% end %>
     </div>
   <% end %>
+  <button class="btn btn-default" id="hipchat-room-create">Create room</button>
 </fieldset>
+
+<script>
+  //@TODO put them into asset
+  $(document).ready(function () {
+    function addHipChatForm(e) {
+      var formCount =$('#hipchat-room-containers')
+        .find(".form-group")
+        .length
+
+      e.preventDefault()
+      var form = $('#hipchat-room-containers')
+        .find(".form-group").last().clone()
+        .insertBefore('#hipchat-room-containers #hipchat-room-create')
+      form.find('input').each(function () {
+        var element = $(this)
+        if (element.prop('name') != undefined) {
+          element.prop('name', element.prop('name').replace(/\[[0-9]+\]/g, '[' + formCount + ']'));
+        }
+        if (element.attr('id') != undefined) {
+          element.attr('id', element.attr('id').replace(/_[0-9]+_/g, '_' + formCount + '_'));
+        }
+      })
+    }
+
+    $('#hipchat-room-create').click(addHipChatForm)
+  })
+</script>

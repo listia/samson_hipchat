@@ -6,15 +6,30 @@ class HipchatNotification
   end
 
   def deliver
-    message = Message.new(@deploy)
+    return if @stage.hipchat_rooms.empty?
+
+    @stage.hipchat_rooms.each do |room|
+      try_delivery(@deploy, room)
+    end
+
+  end
+
+  def try_delivery(deploy, room)
+    if !room.accept_notify?(deploy)
+      Rails.logger.debug("No need to notify #{room.name}")
+      return
+    end
+
+    Rails.logger.debug("Begin to notify #{room.name}")
+    message = Message.new(deploy, room.multi_message?)
     begin
-      hipchat[@stage.hipchat_rooms.first.name].send message.from, message.to_s, **message.style
+      hipchat(room.token)[room.name].send message.from, message.to_s, **message.style
     rescue HipChat::UnknownRoom => e
       Rails.logger.error("Room did not existed")
     rescue HipChat::Unauthorized => e
       Rails.logger.error("Invalid token to post to room")
     rescue HipChat::UnknownResponseCode => e
-      Rails.logger.error("Could not deliver hipchat message: #{e.message}")
+      Rails.logger.error("Could not deliver hipchat message: #{e.message} to room #{room.name}")
     end
   end
 
@@ -22,12 +37,13 @@ class HipchatNotification
     delegate :project, :stage, :user, to: :@deploy
     delegate :project_deploy_url, to: 'AppRoutes.url_helpers'
 
-    def initialize(deploy)
+    def initialize(deploy, is_multi_message)
       @deploy = deploy
       @stage = deploy.stage
       @project = @stage.project
       @user = @deploy.user
       @changeset = @deploy.changeset
+      @is_multi_message = is_multi_message
     end
 
     def style
@@ -39,13 +55,17 @@ class HipchatNotification
     end
 
     def subject
-      subject = "#{@user.name} is about to <a href='#{deploy_url}'>deploy</a> <strong>#{@project.name}</strong> on <strong>#{@stage.name}</strong><br>"
+      if @is_multi_message
+        subject = "#{@user.name} is about to <a href='#{deploy_url}'>deploy</a> <strong>#{@project.name}</strong> on <strong>#{@stage.name}</strong><br>"
 
-      subject = "#{@user.name} successfully deploy <strong>#{@project.name}</strong> @<a href='#{diff_url}'>#{@deploy.commit}...#{@changeset.try(:previous_commit)}</a> on <strong>#{@stage.name}</strong><br>" if @deploy.job.succeeded?
+        subject = "#{@user.name} successfully deploy <strong>#{@project.name}</strong> @<a href='#{diff_url}'>#{@deploy.commit}...#{@changeset.try(:previous_commit)}</a> on <strong>#{@stage.name}</strong><br>" if @deploy.job.succeeded?
 
-      subject = "#{@user.name} failed to <a href='#{deploy_url}'>deploy</a> <strong>#{@project.name}</strong> on <strong>#{@stage.name}</strong><br>" if @deploy.job.failed? || @deploy.job.errored?
+        subject = "#{@user.name} failed to <a href='#{deploy_url}'>deploy</a> <strong>#{@project.name}</strong> on <strong>#{@stage.name}</strong><br>" if @deploy.job.failed? || @deploy.job.errored?
 
-      subject
+        subject
+      else
+        subject = "#{@user.name} successfully deploy <strong>#{@project.name}</strong> @<a href='#{diff_url}'>#{@deploy.commit}...#{@changeset.try(:previous_commit)}</a> on <strong>#{@stage.name}</strong><br>" if @deploy.job.succeeded?
+      end
     end
 
     def to_s
@@ -53,8 +73,12 @@ class HipchatNotification
     end
 
     def content
-      return subject if @deploy.job.succeeded? || @deploy.job.failed? || @deploy.job.errored?
-      @content ||= HipchatNotificationRenderer.render(@deploy, subject)
+      if @is_multi_message
+        return subject if @deploy.job.succeeded? || @deploy.job.failed? || @deploy.job.errored?
+        @content ||= HipchatNotificationRenderer.render(@deploy, subject)
+      else
+        @content ||= HipchatNotificationRenderer.render(@deploy, subject)
+      end
     end
 
     private
@@ -76,7 +100,8 @@ class HipchatNotification
 
   private
 
-  def hipchat
-    HipChat::Client.new @stage.hipchat_rooms.first.token, api_version: 'v2'
+  def hipchat(token = nil)
+    HipChat::Client.new @stage.hipchat_rooms.first.token, api_version: 'v2' if token.nil?
+    HipChat::Client.new token, api_version: 'v2'
   end
 end

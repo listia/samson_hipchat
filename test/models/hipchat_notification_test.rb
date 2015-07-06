@@ -1,14 +1,26 @@
 require_relative '../test_helper'
 
 describe HipchatNotification do
-  let(:project) { stub(name: "Glitter") }
-  let(:user) { stub(name: "John Wu", email: "wu@rocks.com") }
-  let(:stage) { stub(name: "staging", hipchat_rooms: [stub(name: "x123yx", token: "token123")], project: project) }
+  let(:project) { projects(:test) }
+  let(:user) { users(:deployer) }
+  let(:stage) { stub(name: "staging",
+                     hipchat_rooms: [
+                       stub(
+                         name: "x123yx",
+                         token: "token123",
+                         multi_message?: true,
+                         accept_notify?: true)
+  ],
+  project: project) }
+
   let(:hipchat_message) { stub(content: "hello world!", style: {color: :red}, subject: "subject") }
   let(:previous_deploy) { stub(summary: "hello world!", user: user, stage: stage) }
   let(:deploy) { stub(summary: "hello world!", user: user, stage: stage, changeset: "changeset") }
   let(:notification) { HipchatNotification.new(deploy) }
   let(:endpoint) { "https://api.hipchat.com/v2/room/x123yx/notification?auth_token=token123" }
+
+  let(:stage_multi_room) { stages(:test_production) }
+  let(:deploy_in_multi_room) { stub(summary: "hello world!", user: user, stage: stage_multi_room, changeset: "changeset") }
 
   before do
     HipchatNotificationRenderer.stubs(:render).returns("foo")
@@ -44,4 +56,56 @@ describe HipchatNotification do
     end
   end
 
+  describe "multiple hipchat rooms" do
+    before do
+      @hipchat_room1 = HipchatRoom.create!(name: "foo", token: "token1", stage: stage_multi_room, notify_on: 0, room_id: 0)
+      @hipchat_room2 = HipchatRoom.create!(name: "bar", token: "token2", stage: stage_multi_room, notify_on: 1, room_id: 0)
+      @endpoint_foo = "https://api.hipchat.com/v2/room/foo/notification?auth_token=token1"
+      @endpoint_bar = "https://api.hipchat.com/v2/room/foo/notification?auth_token=token1"
+    end
+
+    it "sends notifications to all rooms" do
+      job = Job.create!(command: "test", user: user, project: project) 
+      deploy_in_multi_room.stubs(:job).returns(job)
+
+      stub_request(:post, @endpoint_foo)
+      stub_request(:post, @endpoint_bar)
+
+      HipchatNotificationRenderer.stubs(:render).returns("bar")
+      notification = HipchatNotification.new(deploy_in_multi_room)
+      notification.deliver
+
+      delivery_for_foo_room = stub_request(:post, @endpoint_foo)
+      delivery_for_bar_room = stub_request(:post, @endpoint_bar)
+      notification.deliver
+      assert_requested delivery_for_foo_room, :times => 2
+      assert_requested delivery_for_bar_room, :times => 1
+    end
+
+    it "attempts to delivery message to all room" do
+      job = Job.create!(command: "test", user: user, project: project) 
+      deploy_in_multi_room.stubs(:job).returns(job)
+
+      stub_request(:post, @endpoint_foo)
+      stub_request(:post, @endpoint_bar)
+      HipchatNotificationRenderer.stubs(:render).returns("bar")
+
+      notification = HipchatNotification.new(deploy_in_multi_room)
+      notification.deliver
+
+      assert_send [notification, :try_delivery, *[deploy_in_multi_room, @hipchat_room1]]
+      assert_send [notification, :try_delivery, *[deploy_in_multi_room, @hipchat_room2]]
+    end
+
+    it "sends notification to only room which marked to receive" do
+      
+    end
+  end
+
+  describe "try_delivery" do
+    it "sends send two messages if room's notifi_on = always" do
+
+    end
+
+  end
 end

@@ -9,7 +9,7 @@ Samson::Hooks.callback :stage_clone do |old_stage, new_stage|
 end
 
 Samson::Hooks.callback :stage_permitted_params do
-  { hipchat_rooms_attributes: [:id, :name, :token, :_destroy] }
+  { hipchat_rooms_attributes: [:id, :name, :token, :notify_on, :_destroy] }
 end
 
 notify = -> (deploy, _buddy) do
