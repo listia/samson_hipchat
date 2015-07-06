@@ -1,5 +1,5 @@
 <%= subject %>
-<p>&nbsp;&nbsp;<%= deploy.message %> </p>
+<p>&nbsp;&nbsp;<%= deploy.try(:message) %> </p>
 <% if changeset.commits.count == 0 %>
 There are no new commits since last time.
 <% else %>
