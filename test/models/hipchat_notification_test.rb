@@ -61,10 +61,10 @@ describe HipchatNotification do
       @hipchat_room1 = HipchatRoom.create!(name: "foo", token: "token1", stage: stage_multi_room, notify_on: 0, room_id: 0)
       @hipchat_room2 = HipchatRoom.create!(name: "bar", token: "token2", stage: stage_multi_room, notify_on: 1, room_id: 0)
       @endpoint_foo = "https://api.hipchat.com/v2/room/foo/notification?auth_token=token1"
-      @endpoint_bar = "https://api.hipchat.com/v2/room/foo/notification?auth_token=token1"
+      @endpoint_bar = "https://api.hipchat.com/v2/room/bar/notification?auth_token=token2"
     end
 
-    it "sends notifications to all rooms" do
+    it "sends notifications to all rooms when succesfully" do
       job = Job.create!(command: "test", user: user, project: project) 
       deploy_in_multi_room.stubs(:job).returns(job)
 
@@ -75,15 +75,49 @@ describe HipchatNotification do
       notification = HipchatNotification.new(deploy_in_multi_room)
       notification.deliver
 
-      delivery_for_foo_room = stub_request(:post, @endpoint_foo)
-      delivery_for_bar_room = stub_request(:post, @endpoint_bar)
+      job.status = 'succeeded'
+
       notification.deliver
-      assert_requested delivery_for_foo_room, :times => 2
-      assert_requested delivery_for_bar_room, :times => 1
+
+      assert_requested :post, @endpoint_foo, :times => 2
+      assert_requested :post, @endpoint_bar, :times => 1
+    end
+
+    it "sends notifications to notify_on=always rooms when failed" do
+      job = Job.create!(command: "test", user: user, project: project) 
+      deploy_in_multi_room.stubs(:job).returns(job)
+
+      stub_request(:post, @endpoint_foo)
+      stub_request(:post, @endpoint_bar)
+
+      HipchatNotificationRenderer.stubs(:render).returns("bar")
+      notification = HipchatNotification.new(deploy_in_multi_room)
+      notification.deliver
+      job.status = 'failed'
+      notification.deliver
+
+      assert_requested :post, @endpoint_foo, :times => 2
+      assert_requested :post, @endpoint_bar, :times => 0
+    end
+
+    it "sends only one notification when starting" do
+      job = Job.create!(command: "test", user: user, project: project) 
+      job.status = 'starting'
+      deploy_in_multi_room.stubs(:job).returns(job)
+
+      stub_request(:post, @endpoint_foo)
+      stub_request(:post, @endpoint_bar)
+
+      HipchatNotificationRenderer.stubs(:render).returns("bar")
+      notification = HipchatNotification.new(deploy_in_multi_room)
+      notification.deliver
+
+      assert_requested :post, @endpoint_foo, :times => 1
+      assert_requested :post, @endpoint_bar, :times => 0
     end
 
     it "attempts to delivery message to all room" do
-      job = Job.create!(command: "test", user: user, project: project) 
+      job = Job.create!(command: "test", user: user, project: project)
       deploy_in_multi_room.stubs(:job).returns(job)
 
       stub_request(:post, @endpoint_foo)
@@ -91,21 +125,12 @@ describe HipchatNotification do
       HipchatNotificationRenderer.stubs(:render).returns("bar")
 
       notification = HipchatNotification.new(deploy_in_multi_room)
+
+      notification.expects(:try_delivery).with(deploy_in_multi_room, @hipchat_room1)
+      notification.expects(:try_delivery).with(deploy_in_multi_room, @hipchat_room2)
       notification.deliver
-
-      assert_send [notification, :try_delivery, *[deploy_in_multi_room, @hipchat_room1]]
-      assert_send [notification, :try_delivery, *[deploy_in_multi_room, @hipchat_room2]]
-    end
-
-    it "sends notification to only room which marked to receive" do
-      
-    end
-  end
-
-  describe "try_delivery" do
-    it "sends send two messages if room's notifi_on = always" do
-
     end
 
   end
+
 end
