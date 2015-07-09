@@ -18,7 +18,9 @@ There are no new commits since last time.
 <strong>Commits:</strong>
 <ol>
 <% changeset.commits.each do |commit| %>
-  <li><a href='<%= commit.url %>'>(<%= commit.author_name %>)</a>: <%= commit.summary %></li>
+  <% if !commit.summary.start_with?("Merge pull request") %>
+    <li><a href='<%= commit.url %>'>(<%= commit.author_name %>)</a>: <%= commit.summary %></li>
+  <% end %>
 <% end %>
 </ol>
 <% end %>
