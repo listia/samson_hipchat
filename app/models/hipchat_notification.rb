@@ -58,9 +58,9 @@ class HipchatNotification
       if @is_multi_message
         subject = "#{@user.name} is <a href='#{deploy_url}'>deploying</a> <strong>#{@project.name}</strong> on <strong>#{@stage.name}</strong><br>"
 
-        subject = "#{@user.name} successfully deploy <strong>#{@project.name}</strong> @<a href='#{diff_url}'>#{@deploy.commit}</a> on <strong>#{@stage.name}</strong><br>" if @deploy.job.succeeded?
+        subject = "#{@user.name} successfully deployed <strong>#{@project.name}</strong> @<a href='#{diff_url}'>#{@deploy.commit}</a> on <strong>#{@stage.name}</strong><br>" if @deploy.job.succeeded?
 
-        subject = "#{@user.name} failed to <a href='#{deploy_url}'>deploy</a> <strong>#{@project.name}</strong> on <strong>#{@stage.name}</strong><br>" if @deploy.job.failed? || @deploy.job.errored?
+        subject = "#{@user.name} failed to <a href='#{deploy_url}'>deployed</a> <strong>#{@project.name}</strong> on <strong>#{@stage.name}</strong><br>" if @deploy.job.failed? || @deploy.job.errored?
 
         subject = "#{@user.name} cancelled <a href='#{deploy_url}'>deploy</a> <strong>#{@project.name}</strong> on <strong>#{@stage.name}</strong><br>" if @deploy.job.cancelled?
 
