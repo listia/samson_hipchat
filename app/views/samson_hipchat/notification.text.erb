@@ -1,12 +1,12 @@
 <%= subject %>
-<p>&nbsp;&nbsp;<%= deploy.try(:message).gsub("\n","<br>") %> </p>
+<p>&nbsp;&nbsp;<%= deploy.try(:message).gsub("\n","<br>") %></p>
 
 <% if option[:is_multi_message] %>
-  <% if changeset.commits.count == 0 %>
-  There are no new commits since last time.
-  <% else %>
-  <%= pluralize changeset.commits.count, "commit" %> by <%= changeset.author_names.to_sentence %>.
-  <br>
+<% if changeset.commits.count == 0 %>
+There are no new commits since last time.
+<% else %>
+<%= pluralize changeset.commits.count, "commit" %> by <%= changeset.author_names.to_sentence %>.
+<br>
 <% end %>
 
 <% if false %>
@@ -23,10 +23,9 @@
 <ol>
 <% changeset.commits.each do |commit| %>
   <% if !commit.summary.start_with?("Merge pull request") %>
-    <li><a href='<%= commit.url %>'>(<%= commit.author_name %>)</a>: <%= commit.summary %></li>
+  <li><a href='<%= commit.url %>'>(<%= commit.author_name %>)</a>: <%= commit.summary %></li>
   <% end %>
 <% end %>
 </ol>
 <% end %>
-
 <% end %>
