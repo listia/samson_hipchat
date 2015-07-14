@@ -66,8 +66,7 @@ class HipchatNotification
 
         subject
       else
-        #subject = "#{@user.name} successfully deploy <strong>#{@project.name}</strong> @<a href='#{diff_url}'>#{@deploy.commit}...#{@changeset.try(:previous_commit)}</a> on <strong>#{@stage.name}</strong><br>" if @deploy.job.succeeded?
-        subject = "#{@user.name} successfully deploy <strong>#{@project.name}</strong> @ <a href='#{diff_url}'>#{@deploy.commit}</a> on <strong>#{@stage.name}</strong><br>" if @deploy.job.succeeded?
+        subject = "#{@user.name} successfully deployed <strong>#{@project.name}</strong> @ <a href='#{diff_url}'>#{@deploy.commit}</a> to <strong>#{@stage.name}</strong><br>" if @deploy.job.succeeded?
       end
     end
 
