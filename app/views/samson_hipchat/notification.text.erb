@@ -1,10 +1,13 @@
 <%= subject %>
-<p>&nbsp;&nbsp;<%= deploy.try(:message) %> </p>
-<% if changeset.commits.count == 0 %>
-There are no new commits since last time.
-<% else %>
-<%= pluralize changeset.commits.count, "commit" %> by <%= changeset.author_names.to_sentence %>.
-<br>
+<p>&nbsp;&nbsp;<%= deploy.try(:message).gsub("\n","<br>") %> </p>
+
+<% if option[:is_multi_message] %>
+  <% if changeset.commits.count == 0 %>
+  There are no new commits since last time.
+  <% else %>
+  <%= pluralize changeset.commits.count, "commit" %> by <%= changeset.author_names.to_sentence %>.
+  <br>
+<% end %>
 
 <% if false %>
 <strong>Files changed:</strong>
@@ -15,6 +18,7 @@ There are no new commits since last time.
 </ul>
 <% end %>
 
+<% if option[:is_multi_message] %>
 <strong>Commits:</strong>
 <ol>
 <% changeset.commits.each do |commit| %>
@@ -23,4 +27,6 @@ There are no new commits since last time.
   <% end %>
 <% end %>
 </ol>
+<% end %>
+
 <% end %>

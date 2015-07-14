@@ -78,7 +78,7 @@ class HipchatNotification
     def content
       if @is_multi_message
         return subject if @deploy.job.succeeded? || @deploy.job.failed? || @deploy.job.errored?
-        @content ||= HipchatNotificationRenderer.render(@deploy, subject)
+        @content ||= HipchatNotificationRenderer.render(@deploy, subject, {is_multi_message: true})
       else
         @content ||= HipchatNotificationRenderer.render(@deploy, subject)
       end
