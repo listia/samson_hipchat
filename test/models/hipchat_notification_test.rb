@@ -133,4 +133,31 @@ describe HipchatNotification do
 
   end
 
+  describe "try_delivery" do
+    it "sends message if room accepts notification" do
+
+    end
+
+    it "will not send message if room does not accept notification" do
+
+    end
+  end
+
+  describe "message" do
+    describe "multi mode" do
+
+      it "turns on notify" do
+        m = HipchatNotification::Message.new deploy, true
+        m.style[:notify].must_equal true
+      end
+    end
+
+    describe "single mode" do
+
+      it "turns off notify" do
+        m = HipchatNotification::Message.new deploy, false
+        m.style[:notify].must_equal false
+      end
+    end
+  end
 end

@@ -47,7 +47,7 @@ class HipchatNotification
     end
 
     def style
-      {:color => color, :notify => true}
+      {:color => color, :notify => @is_multi_message}
     end
 
     def from
