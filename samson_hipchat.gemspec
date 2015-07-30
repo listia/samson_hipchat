@@ -1,4 +1,4 @@
-Gem::Specification.new "samson_hipchat", "0.1.10" do |s|
+Gem::Specification.new "samson_hipchat", "0.1.11" do |s|
   s.summary = "Samson hipchat integration"
   s.authors = ["Vinh Nguyen"]
   s.email = "vinh@listia.com"
