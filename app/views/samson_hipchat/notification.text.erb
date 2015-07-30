@@ -1,6 +1,6 @@
 <%= subject %>
 <br>
-<p><%= deploy.try(:message).gsub("\n","<br>") %></p>
+<p><code><%= deploy.try(:message).gsub("\n","<br>") %></code></p>
 
 <% if option[:is_multi_message] %>
 <% if changeset.commits.count == 0 %>
